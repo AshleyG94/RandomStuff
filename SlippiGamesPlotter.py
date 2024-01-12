@@ -2,6 +2,7 @@ import os
 import datetime
 import matplotlib.pyplot as plt
 import calendar
+import glob
 
 # Specify the directory you want to trawl
 directory = "D:\Slippi"
@@ -15,8 +16,9 @@ end_date = None
 total_games = 0
 
 # Loop through all the files in the directory
-for filename in os.listdir(directory):
-    # Only consider files with the extension ".slp"
+files = glob.glob(directory + '/**/*.slp', recursive=True)
+# Only consider files with the extension ".slp"
+for filename in files:
     if filename.endswith(".slp"):
         # Get the modification time of the file
         modified_time = os.path.getmtime(os.path.join(directory, filename))
@@ -33,11 +35,21 @@ for filename in os.listdir(directory):
             end_date = modified_date
         total_games += 1
 
+# Create a list of all months within the date range
+date_range = set(
+    (start_date + datetime.timedelta(n)).strftime("%Y-%m") for n in range((end_date - start_date).days + 1)
+)
+
+# Initialize month_counts for all months in the date range
+for month_year in date_range:
+    month_counts.setdefault(month_year, 0)
+
 # Create lists for the x and y axis data
 x_values = []
 y_values = []
 for month_year, count in sorted(month_counts.items()):
     year, month = month_year.split('-')
+    year = year[2:]
     month_name = calendar.month_name[int(month)]
     x_values.append(f"{month_name[:3]}\n{year}")  # add line break
     y_values.append(count)
@@ -50,11 +62,6 @@ ax.plot(x_values, y_values, color="blue")
 ax.set_title("Number of Games Played per Month")
 ax.set_xlabel("Month", labelpad=15)  # add padding to the x-axis label
 ax.set_ylabel("Number of Games")
-
-
-
-
-
 
 # Add gridlines and adjust margins
 ax.grid(True, axis='y')
